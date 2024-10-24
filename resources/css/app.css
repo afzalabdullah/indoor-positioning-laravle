@@ -1,0 +1,93 @@
+@import '~bootstrap/scss/bootstrap';
+/* public/css/custom.css */
+body {
+    background-color: #f8f9fa;
+}
+
+/* General container styles */
+.container {
+    max-width: 1200px;  /* Limit container width */
+    margin: 0 auto;  /* Center container */
+    padding: 20px;  /* Add padding */
+}
+
+/* Header styles */
+h1 {
+    font-size: 2.5rem;  /* Increase heading size */
+    color: #333;  /* Darker text for better contrast */
+    margin-bottom: 10px;  /* Add margin below heading */
+}
+
+/* Paragraph styles */
+p {
+    font-size: 1.2rem;  /* Readable font size */
+    line-height: 1.6;  /* Improve line spacing */
+    color: #666;  /* Softer text color */
+}
+
+/* Image styles */
+#site-image {
+    border-radius: 10px;  /* Rounded corners */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);  /* Soft shadow effect */
+}
+
+/* Anchor point styles */
+.anchor-point {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;  /* Smooth transition for hover effects */
+}
+
+.anchor-point:hover {
+    transform: scale(1.1);  /* Slightly enlarge on hover */
+}
+
+/* Asset point styles */
+.asset-point {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;  /* Smooth transition for hover effects */
+}
+
+.asset-point:hover {
+    transform: scale(1.1);  /* Slightly enlarge on hover */
+}
+
+/* Icon styles */
+.fas {
+    font-size: 20px;  /* Icon size */
+}
+
+/* Button styles */
+button {
+    background-color: #007bff;  /* Bootstrap primary color */
+    color: white;  /* White text */
+    border: none;  /* Remove border */
+    padding: 10px 20px;  /* Padding around button */
+    border-radius: 5px;  /* Rounded corners */
+    cursor: pointer;  /* Pointer cursor on hover */
+    transition: background-color 0.3s;  /* Smooth background transition */
+}
+
+button:hover {
+    background-color: #0056b3;  /* Darker blue on hover */
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;  /* Adjust heading size for smaller screens */
+    }
+
+    p {
+        font-size: 1rem;  /* Adjust paragraph size for smaller screens */
+    }
+}
