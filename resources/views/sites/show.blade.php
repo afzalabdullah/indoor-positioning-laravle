@@ -194,107 +194,123 @@
     </div>
 
     <script>
-        const MAX_WIDTH = @json($maxWidth);
-        const MAX_HEIGHT = @json($maxHeight);
-        const POINT_SIZE = 40;
-        const TRILATERATION_INTERVAL = 1000;
+    const MAX_WIDTH = @json($maxWidth);
+    const MAX_HEIGHT = @json($maxHeight);
+    const POINT_SIZE = 40;
+    const TRILATERATION_INTERVAL = 1000;
 
-        function positionPoints(points, className) {
-            const image = document.getElementById('site-image');
-            const imageRect = image.getBoundingClientRect();
-
-            points.forEach(point => {
-                const pointElement = document.querySelector(`[data-uid="${point.uid}"]`) || createPointElement(point.uid, className, point.icon, point.name);
-
-                const xRatio = point.x / MAX_WIDTH;
-                const yRatio = point.y / MAX_HEIGHT;
-
-                const x = xRatio * imageRect.width;
-                const y = yRatio * imageRect.height;
-
-                pointElement.style.left = `${x - POINT_SIZE / 2}px`;
-                pointElement.style.top = `${y - POINT_SIZE / 2}px`;
-                pointElement.style.display = 'flex';
-            });
-        }
-
-        function createPointElement(uid, className, iconClass, deviceName) {
-            const container = document.getElementById('site-image').parentElement;
-            const pointElement = document.createElement('div');
-
-            pointElement.classList.add('point', className);
-            pointElement.setAttribute('data-uid', uid);
-
-            const icon = document.createElement('i');
-
-            if (!deviceName || deviceName.toLowerCase() === 'unknown') {
-                pointElement.classList.add('unknown-device');
-                icon.className = 'fas fa-question';
-            } else {
-                icon.className = iconClass;
-            }
-
-            pointElement.appendChild(icon);
-
-            pointElement.addEventListener('click', () => {
-                document.getElementById('deviceName').textContent = deviceName || 'Unknown Device';
-                document.getElementById('deviceId').textContent = uid;
-                $('#detailModal').modal('show');
-            });
-
-            container.appendChild(pointElement);
-            return pointElement;
-        }
-
-        function fetchTrilateration() {
-            const anchors = Array.from(document.querySelectorAll('.anchor-point')).map(anchor =>
-                anchor.getAttribute('data-uid')
-            );
-
-            fetch('/trilateration/latest-position', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
-                },
-                body: JSON.stringify({ anchors })
-            })
-            .then(response => response.json())
-            .then(data => {
-                const assetPoints = Object.entries(data).map(([uid, position]) => ({
-                    uid,
-                    x: position.x,
-                    y: position.y,
-                    icon: position.icon || 'default_icon.png',
-                    name: position.name || 'Unknown'
-                }));
-                positionPoints(assetPoints, 'asset-point');
-            })
-            .catch(error => console.error('Error fetching trilateration data:', error));
-        }
-
+    function positionPoints(points, className) {
         const image = document.getElementById('site-image');
-        image.addEventListener('load', function () {
-            const anchors = @json($site->anchors).map(anchor => ({
-                uid: anchor.uid,
-                x: anchor.x,
-                y: anchor.y
-            }));
+        const imageRect = image.getBoundingClientRect();
 
-            positionPoints(anchors, 'anchor-point');
-            fetchTrilateration();
-            setInterval(fetchTrilateration, TRILATERATION_INTERVAL);
+        // Check if points is an array
+        if (!Array.isArray(points)) {
+            console.error('Invalid points data:', points);
+            return; // Early return if points is not valid
+        }
+
+        points.forEach(point => {
+            const pointElement = document.querySelector(`[data-uid="${point.uid}"]`) || createPointElement(point.uid, className, point.icon, point.name);
+
+            const xRatio = point.x / MAX_WIDTH;
+            const yRatio = point.y / MAX_HEIGHT;
+
+            const x = xRatio * imageRect.width;
+            const y = yRatio * imageRect.height;
+
+            pointElement.style.left = `${x - POINT_SIZE / 2}px`;
+            pointElement.style.top = `${y - POINT_SIZE / 2}px`;
+            pointElement.style.display = 'flex';
+        });
+    }
+
+    function createPointElement(uid, className, iconClass, deviceName) {
+        const container = document.getElementById('site-image').parentElement;
+        const pointElement = document.createElement('div');
+
+        pointElement.classList.add('point', className);
+        pointElement.setAttribute('data-uid', uid);
+
+        const icon = document.createElement('i');
+
+        if (!deviceName || deviceName.toLowerCase() === 'unknown') {
+            pointElement.classList.add('unknown-device');
+            icon.className = 'fas fa-question';
+        } else {
+            icon.className = iconClass;
+        }
+
+        pointElement.appendChild(icon);
+
+        pointElement.addEventListener('click', () => {
+            document.getElementById('deviceName').textContent = deviceName || 'Unknown Device';
+            document.getElementById('deviceId').textContent = uid;
+            $('#detailModal').modal('show');
         });
 
-        window.addEventListener('resize', function () {
-            const anchors = @json($site->anchors).map(anchor => ({
-                uid: anchor.uid,
-                x: anchor.x,
-                y: anchor.y
-            }));
+        container.appendChild(pointElement);
+        return pointElement;
+    }
 
-            positionPoints(anchors, 'anchor-point');
-        });
-    </script>
+    function fetchTrilateration() {
+        const anchors = Array.from(document.querySelectorAll('.anchor-point')).map(anchor =>
+            anchor.getAttribute('data-uid')
+        );
+
+        fetch('/trilateration/latest-position', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            },
+            body: JSON.stringify({ anchors })
+        })
+        .then(response => {
+            // Check if the response is ok (status in the range 200-299)
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Trilateration response data:', data); // Debugging line
+
+            // Ensure data is structured correctly
+            const assetPoints = Object.entries(data).map(([uid, position]) => ({
+                uid,
+                x: position[0], // x-coordinate
+                y: position[1], // y-coordinate
+                icon: position.icon || 'default_icon.png',
+                name: position.name || 'Unknown'
+            }));
+            positionPoints(assetPoints, 'asset-point');
+        })
+        .catch(error => console.error('Error fetching trilateration data:', error));
+    }
+
+    const image = document.getElementById('site-image');
+    image.addEventListener('load', function () {
+        const anchors = @json($site->anchors).map(anchor => ({
+            uid: anchor.uid,
+            x: anchor.x,
+            y: anchor.y
+        }));
+
+        positionPoints(anchors, 'anchor-point');
+        fetchTrilateration();
+        setInterval(fetchTrilateration, TRILATERATION_INTERVAL);
+    });
+
+    window.addEventListener('resize', function () {
+        const anchors = @json($site->anchors).map(anchor => ({
+            uid: anchor.uid,
+            x: anchor.x,
+            y: anchor.y
+        }));
+
+        positionPoints(anchors, 'anchor-point');
+    });
+</script>
+
 </div>
 @endsection
